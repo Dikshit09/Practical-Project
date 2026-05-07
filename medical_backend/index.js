@@ -11,7 +11,7 @@ import medicineScheduleRoutes from './routes/medicineSchedule.js'
 
 dotenv.config();
 const app = express();
-const port = process.env.PORT 
+
 
 
 
@@ -40,7 +40,7 @@ app.use("/api/appointments", appointmentRoutes);
 app.use("/api/doctor", doctorRoutes);
 app.use("/api/medicineSchedule", medicineScheduleRoutes)
 
-
+const PORT = process.env.PORT || 4000
 
 // Start server
 app.listen(PORT, () => {
