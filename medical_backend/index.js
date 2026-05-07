@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-
+import dotenv from "dotenv"
 import userRoute from './routes/users.js';
 import authRoute from './routes/auth.js';
 import appointmentRoutes from './models/apointment.js';
@@ -13,6 +13,7 @@ import medicineScheduleRoutes from './routes/medicineSchedule.js'
 dotenv.config();
 const app = express();
 const port = process.env.PORT 
+dotenv.config()
 
 
 
@@ -43,6 +44,6 @@ app.use("/api/medicineSchedule", medicineScheduleRoutes)
 
 
 // Start server
-app.listen(port, () => {
-    console.log('Server listening on port', port);
-});
+app.listen(PORT, () => {
+   console.log(`Server listening on port ${PORT}`)
+})
