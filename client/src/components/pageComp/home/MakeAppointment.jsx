@@ -75,36 +75,29 @@ const MakeAppointment = () => {
                   }}
                   validationSchema={validationSchema}
                   onSubmit={async (values, { setSubmitting, resetForm }) => {
-                    console.log("Form data submitted:", values);
-                    setLoading(true);
-                    try {
-                      const response = await dispatch(
-                        createAppointmentSlice(values)
-                      );
-                      console.log("response", response);
+    console.log("Form data submitted:", values);
+    setLoading(true);
+    try {
+      const response = await dispatch(createAppointmentSlice(values));
+      console.log("Full response:", response);  // ← pehle dekho kya aata hai
 
-                      if (response.payload.success) {
-                        resetForm();
-                        toast.success(
-                          response.message || "Appointment created successfully"
-                        );
-                        window.location.reload();
-                      }
-                      //  else {
-                      //   toast.error(
-                      //     response.message || "Failed to create appointment"
-                      //   );
-                      // }
-                    } catch (error) {
-                      console.error("Error creating appointment:", error);
-                      toast.error(
-                        "An error occurred while creating the appointment."
-                      );
-                    } finally {
-                      setSubmitting(false);
-                      setLoading(false);
-                    }
-                  }}
+      // ✅ Fix - rejected check karo
+      if (response.type === 'appointment/createAppointmentApi/fulfilled') {
+        resetForm();
+        toast.success("Appointment created successfully! 🎉");
+        window.location.reload();
+      } else {
+        // ❌ Failed
+        toast.error(response.payload?.message || "Failed to create appointment");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("An error occurred!");
+    } finally {
+      setSubmitting(false);
+      setLoading(false);
+    }
+}}
                 >
                   {({ errors, touched, handleSubmit, setFieldValue }) => (
                     <Form onSubmit={handleSubmit}>
