@@ -288,7 +288,7 @@ export const getMedicineScheduleById = async (req, res) => {
     }
     res.json(medicineSchedule);
   } catch (error) {
-    res.status500.json({ message: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
