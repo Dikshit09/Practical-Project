@@ -4,11 +4,6 @@ import Appointment from '../models/apointment.js';
 import Doctor from '../models/doctor.js';
 import dotenv from 'dotenv';
 
-
-
-
-
-
 // Function to send email using nodemailer
 const sendEmail = async (to, subject, text) => {
   try {
@@ -39,7 +34,6 @@ const sendEmail = async (to, subject, text) => {
 export const createAppointment = async (req, res) => {
   const { doctor, user, ...appointmentData } = req.body;
 
-  // Validate user and doctor IDs
   if (!user) {
     return res.status(400).json({
       success: false,
@@ -55,7 +49,6 @@ export const createAppointment = async (req, res) => {
   }
 
   try {
-    // Check if user exists
     const foundUser = await User.findById(user);
     if (!foundUser) {
       return res.status(404).json({
@@ -64,7 +57,6 @@ export const createAppointment = async (req, res) => {
       });
     }
 
-    // Check if doctor exists
     const foundDoctor = await Doctor.findById(doctor);
     if (!foundDoctor) {
       return res.status(404).json({
@@ -73,15 +65,25 @@ export const createAppointment = async (req, res) => {
       });
     }
 
-    // Create new appointment
     const newAppointment = new Appointment({ doctor, user, ...appointmentData });
     const savedAppointment = await newAppointment.save();
 
-    // Send email to user
-    const subject = 'Appointment Scheduled';
-    const text = `Hello ${foundUser.name},\n\nYour appointment with our doctor ${foundDoctor.name} has been scheduled successfully for ${appointmentData.firstName} ${appointmentData.lastName} on ${appointmentData.appointmentDate}.\n\nThank you.`;
+    // ✅ User ko email
+    const userSubject = 'Appointment Scheduled';
+    const userText = `Hello ${foundUser.name},\n\nYour appointment with Dr. ${foundDoctor.name} has been scheduled successfully for ${appointmentData.firstName} ${appointmentData.lastName} on ${appointmentData.appointmentDate}.\n\nThank you.`;
+    await sendEmail(foundUser.email, userSubject, userText);
 
-    await sendEmail(foundUser.email, subject, text);
+    // ✅ Aapko email - dikshitchoudhary09@gmail.com
+    const adminSubject = '🏥 New Appointment Booked!';
+    const adminText = `New Appointment Details:\n
+Patient Name: ${appointmentData.firstName} ${appointmentData.lastName}
+Patient Email: ${appointmentData.email}
+Patient Phone: ${appointmentData.phoneNumber}
+Doctor: ${foundDoctor.name}
+Appointment Date: ${appointmentData.appointmentDate}
+Message: ${appointmentData.message}
+Booked By: ${foundUser.name} (${foundUser.email})`;
+    await sendEmail('dikshitchoudhary09@gmail.com', adminSubject, adminText);
 
     res.status(200).json({
       success: true,
@@ -89,7 +91,6 @@ export const createAppointment = async (req, res) => {
       data: savedAppointment,
     });
   } catch (err) {
-    // console.error('Error creating appointment:', err);
     res.status(500).json({
       success: false,
       message: "Failed to create appointment. Try again",
