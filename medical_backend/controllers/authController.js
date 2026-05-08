@@ -55,6 +55,7 @@ export const register = async (req, res) => {
             email: req.body.email,
             password: hash,
             photo: req.body.photo,
+            role: req.body.role,
         });
 
         await newUser.save();
@@ -118,7 +119,7 @@ export const login = async (req, res) => {
         res
         .cookie("accessToken", token, {
             httpOnly: true,
-            expires: token.expiresIn,
+           expires: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
         })
         .status(200)
         .json({
