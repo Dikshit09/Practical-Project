@@ -5,7 +5,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import userRoute from './routes/users.js';
 import authRoute from './routes/auth.js';
-import appointmentRoutes from './models/apointment.js';
+import appointmentRoutes from './routes/appointment.js';
 import doctorRoutes from './routes/doctor.js'
 import medicineScheduleRoutes from './routes/medicineSchedule.js'
 
