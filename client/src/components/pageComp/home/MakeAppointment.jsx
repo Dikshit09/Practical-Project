@@ -27,10 +27,12 @@ const MakeAppointment = () => {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
+ useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        const res = await axios.get(`${BASE_URL}doctors/getAll`);
+        // ✅ Seedha URL daalo test ke liye
+        const res = await axios.get(`https://practical-project-8fga.onrender.com/api/doctor/getAll`);
+        console.log('Doctors:', res.data);  // Console mein check karo
         setDoctors(res.data);
       } catch (error) {
         console.error("Error fetching doctors:", error);
