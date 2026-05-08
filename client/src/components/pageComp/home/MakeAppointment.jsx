@@ -30,7 +30,7 @@ const MakeAppointment = () => {
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        const res = await axios.get(`${BASE_URL}doctor/getAll/`);
+        const res = await axios.get(`${BASE_URL}doctors/getAll`);
         setDoctors(res.data);
       } catch (error) {
         console.error("Error fetching doctors:", error);
