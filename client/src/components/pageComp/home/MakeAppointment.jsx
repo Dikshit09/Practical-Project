@@ -18,7 +18,6 @@ const validationSchema = Yup.object().shape({
   appointmentDate: Yup.date().required("Appointment Date is required"),
   message: Yup.string().required("Message is required"),
   doctor: Yup.string().required("Doctor is required"),
-  // ✅ user validation hataya - automatically set hoga
 });
 
 const MakeAppointment = () => {
@@ -38,9 +37,6 @@ const MakeAppointment = () => {
     };
     fetchDoctors();
   }, []);
-
-  // ✅ Local_User check karo
-  console.log('Local_User:', Local_User);
 
   return (
     <div>
@@ -76,7 +72,6 @@ const MakeAppointment = () => {
                   }}
                   validationSchema={validationSchema}
                   onSubmit={async (values, { setSubmitting, resetForm }) => {
-                    // ✅ User ID manually set karo
                     const finalValues = {
                       ...values,
                       user: Local_User?._id,
@@ -84,7 +79,6 @@ const MakeAppointment = () => {
 
                     console.log("Form data submitted:", finalValues);
 
-                    // ✅ User check
                     if (!finalValues.user) {
                       toast.error("Please login first!");
                       setSubmitting(false);
@@ -115,6 +109,8 @@ const MakeAppointment = () => {
                   {({ errors, touched, handleSubmit, setFieldValue }) => (
                     <Form onSubmit={handleSubmit}>
                       <div className="row row-tb-10 row-rl-10">
+
+                        {/* First Name */}
                         <div className="col-md-6">
                           <Field
                             type="text"
@@ -124,6 +120,8 @@ const MakeAppointment = () => {
                           />
                           <ErrorMessage name="firstName" component="div" className="invalid-feedback" />
                         </div>
+
+                        {/* Last Name */}
                         <div className="col-md-6">
                           <Field
                             type="text"
@@ -133,6 +131,8 @@ const MakeAppointment = () => {
                           />
                           <ErrorMessage name="lastName" component="div" className="invalid-feedback" />
                         </div>
+
+                        {/* Email */}
                         <div className="col-md-6">
                           <Field
                             type="email"
@@ -142,6 +142,8 @@ const MakeAppointment = () => {
                           />
                           <ErrorMessage name="email" component="div" className="invalid-feedback" />
                         </div>
+
+                        {/* Phone */}
                         <div className="col-md-6">
                           <Field
                             type="text"
@@ -151,11 +153,14 @@ const MakeAppointment = () => {
                           />
                           <ErrorMessage name="phoneNumber" component="div" className="invalid-feedback" />
                         </div>
+
+                        {/* Gender ✅ onChange fix */}
                         <div className="col-md-6">
                           <Field
                             as="select"
                             className={`form-control input-lg ${errors.gender && touched.gender ? "is-invalid" : ""}`}
                             name="gender"
+                            onChange={(e) => setFieldValue("gender", e.target.value)}
                           >
                             <option value="">Select Your Gender</option>
                             <option value="Male">Male</option>
@@ -164,14 +169,19 @@ const MakeAppointment = () => {
                           </Field>
                           <ErrorMessage name="gender" component="div" className="invalid-feedback" />
                         </div>
+
+                        {/* Date ✅ onChange fix */}
                         <div className="col-md-6">
                           <Field
                             type="date"
                             className={`form-control input-lg ${errors.appointmentDate && touched.appointmentDate ? "is-invalid" : ""}`}
                             name="appointmentDate"
+                            onChange={(e) => setFieldValue("appointmentDate", e.target.value)}
                           />
                           <ErrorMessage name="appointmentDate" component="div" className="invalid-feedback" />
                         </div>
+
+                        {/* Doctor */}
                         <div className="col-md-12">
                           <label htmlFor="doctor">Doctor</label>
                           <Field
@@ -190,6 +200,8 @@ const MakeAppointment = () => {
                           </Field>
                           <ErrorMessage name="doctor" component="div" className="invalid-feedback" />
                         </div>
+
+                        {/* Message ✅ onChange fix */}
                         <div className="col-xs-12">
                           <Field
                             as="textarea"
@@ -197,9 +209,12 @@ const MakeAppointment = () => {
                             rows="7"
                             placeholder="Message"
                             name="message"
+                            onChange={(e) => setFieldValue("message", e.target.value)}
                           />
                           <ErrorMessage name="message" component="div" className="invalid-feedback" />
                         </div>
+
+                        {/* Button */}
                         <div className="col-xs-12">
                           {loading ? (
                             <button className="btn btn-lg btn-block" disabled>
@@ -211,6 +226,7 @@ const MakeAppointment = () => {
                             </button>
                           )}
                         </div>
+
                       </div>
                     </Form>
                   )}
