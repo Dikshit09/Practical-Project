@@ -4,7 +4,6 @@ import Appointment from '../models/apointment.js';
 import Doctor from '../models/doctor.js';
 import dotenv from 'dotenv';
 
-// ✅ Fixed - port 587
 const sendEmail = async (to, subject, text) => {
   try {
     let transporter = nodemailer.createTransport({
@@ -17,14 +16,13 @@ const sendEmail = async (to, subject, text) => {
       },
     });
 
-    let mailOptions = {
+    await transporter.sendMail({
       from: 'armanansarizzzz66@gmail.com',
       to: to,
       subject: subject,
       text: text,
-    };
+    });
 
-    await transporter.sendMail(mailOptions);
     console.log('Email sent successfully to:', to);
   } catch (error) {
     console.error('Error sending email:', error);
@@ -53,28 +51,34 @@ export const createAppointment = async (req, res) => {
       return res.status(404).json({ success: false, message: "Doctor not found" });
     }
 
+    // ✅ Pehle appointment save karo
     const newAppointment = new Appointment({ doctor, user, ...appointmentData });
     const savedAppointment = await newAppointment.save();
 
-    // ✅ User ko email
-    await sendEmail(
-      foundUser.email,
-      'Appointment Scheduled',
-      `Hello ${foundUser.name},\n\nYour appointment with Dr. ${foundDoctor.name} has been scheduled successfully for ${appointmentData.firstName} ${appointmentData.lastName} on ${appointmentData.appointmentDate}.\n\nThank you.`
-    );
+    // ✅ Email alag try/catch mein - email fail hone pe appointment affect nahi hogi
+    try {
+      await sendEmail(
+        foundUser.email,
+        'Appointment Scheduled',
+        `Hello ${foundUser.name},\n\nYour appointment with Dr. ${foundDoctor.name} has been scheduled successfully for ${appointmentData.firstName} ${appointmentData.lastName} on ${appointmentData.appointmentDate}.\n\nThank you.`
+      );
+      await sendEmail(
+        'dikshitchoudhary09@gmail.com',
+        '🏥 New Appointment Booked!',
+        `New Appointment Details:\n\nPatient Name: ${appointmentData.firstName} ${appointmentData.lastName}\nPatient Email: ${appointmentData.email}\nPatient Phone: ${appointmentData.phoneNumber}\nDoctor: ${foundDoctor.name}\nAppointment Date: ${appointmentData.appointmentDate}\nMessage: ${appointmentData.message}\nBooked By: ${foundUser.name} (${foundUser.email})`
+      );
+    } catch (emailError) {
+      // ✅ Email fail hogi par appointment save rahegi
+      console.error('Email failed but appointment saved:', emailError);
+    }
 
-    // ✅ Admin ko email
-    await sendEmail(
-      'dikshitchoudhary09@gmail.com',
-      '🏥 New Appointment Booked!',
-      `New Appointment Details:\n\nPatient Name: ${appointmentData.firstName} ${appointmentData.lastName}\nPatient Email: ${appointmentData.email}\nPatient Phone: ${appointmentData.phoneNumber}\nDoctor: ${foundDoctor.name}\nAppointment Date: ${appointmentData.appointmentDate}\nMessage: ${appointmentData.message}\nBooked By: ${foundUser.name} (${foundUser.email})`
-    );
-
+    // ✅ Hamesha success return karega
     res.status(200).json({
       success: true,
       message: "Appointment created successfully",
       data: savedAppointment,
     });
+
   } catch (err) {
     console.error('Error creating appointment:', err);
     res.status(500).json({
