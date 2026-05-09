@@ -2,13 +2,13 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { createUserApi, loginUserApi } from "../api/user";
 
 const initialState = {
-  user: null,
+  // ✅ Page reload pe bhi user rahe
+  user: JSON.parse(localStorage.getItem('t_A1b2C3d')) || null,
   users: [],
   isLoading: false,
   error: "",
 };
 
-// Generalized async thunk function
 const AsyncFunctionThunk = (name, apiFunction) => {
   return createAsyncThunk(`user/${name}`, async (data, { rejectWithValue }) => {
     try {
@@ -24,15 +24,9 @@ const AsyncFunctionThunk = (name, apiFunction) => {
   });
 };
 
-// Define async thunks for each operation
-export const createUserSlice = AsyncFunctionThunk(
-  "createUserApi",
-  createUserApi
-);
-export const loginUserSlice = AsyncFunctionThunk(
-  "loginUserApi",
-  loginUserApi
-);
+export const createUserSlice = AsyncFunctionThunk("createUserApi", createUserApi);
+export const loginUserSlice = AsyncFunctionThunk("loginUserApi", loginUserApi);
+
 export const userSlice = createSlice({
   name: "user",
   initialState,
@@ -40,19 +34,18 @@ export const userSlice = createSlice({
     setError: (state, action) => {
       state.error = null;
     },
+    // ✅ Logout action
+    logoutUser: (state) => {
+      state.user = null;
+      localStorage.removeItem('t_A1b2C3d');
+    }
   },
   extraReducers: (builder) => {
     builder
-      // createLoginSlice
+      // Register
       .addCase(createUserSlice.fulfilled, (state, action) => {
-        state.user = action.payload;
-        console.log("action", action)
-        // localStorage.setItem(
-        //   "t_A1b2C3d",
-        //   JSON.stringify(action.payload)
-        // );
         state.isLoading = false;
-        state.user = true;
+        // ✅ state.user = true wala bug hataya
       })
       .addCase(createUserSlice.pending, (state) => {
         state.isLoading = true;
@@ -61,14 +54,13 @@ export const userSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
+
+      // Login
       .addCase(loginUserSlice.fulfilled, (state, action) => {
-        state.user = action.payload;
-        localStorage.setItem(
-          "t_A1b2C3d",
-          JSON.stringify(action.payload.data)
-        );
+        state.user = action.payload.data; // ✅ user data save karo
+        localStorage.setItem("t_A1b2C3d", JSON.stringify(action.payload.data));
         state.isLoading = false;
-        state.user = true;
+        // ✅ state.user = true wala bug hataya
       })
       .addCase(loginUserSlice.pending, (state) => {
         state.isLoading = true;
@@ -80,7 +72,5 @@ export const userSlice = createSlice({
   },
 });
 
-// Action creators are generated for each case reducer function
-export const { increment } = userSlice.actions;
-
+export const { setError, logoutUser } = userSlice.actions;
 export default userSlice.reducer;

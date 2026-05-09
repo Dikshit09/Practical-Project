@@ -4,14 +4,12 @@ import * as Yup from "yup";
 import icon from "../../../assets/images/icon.png";
 import img01 from "../../../assets/images/appointment/img-01.png";
 import axios from "axios";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { createAppointmentSlice } from "../../../redux/slice/appointment";
 import { toast } from "react-toastify";
 import { Local_User } from "../../layout/LocalUser";
-import { BASE_URL } from "../../../utils/baseUrl";
 
 const validationSchema = Yup.object().shape({
-  user: Yup.string().required("User ID is required"),
   firstName: Yup.string().required("First Name is required"),
   lastName: Yup.string().required("Last Name is required"),
   email: Yup.string().email("Invalid email").required("Email is required"),
@@ -20,6 +18,7 @@ const validationSchema = Yup.object().shape({
   appointmentDate: Yup.date().required("Appointment Date is required"),
   message: Yup.string().required("Message is required"),
   doctor: Yup.string().required("Doctor is required"),
+  // ✅ user validation hataya - automatically set hoga
 });
 
 const MakeAppointment = () => {
@@ -27,12 +26,11 @@ const MakeAppointment = () => {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(false);
 
- useEffect(() => {
+  useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        // ✅ Seedha URL daalo test ke liye
         const res = await axios.get(`https://practical-project-8fga.onrender.com/api/doctor/getAll`);
-        console.log('Doctors:', res.data);  // Console mein check karo
+        console.log('Doctors:', res.data);
         setDoctors(res.data);
       } catch (error) {
         console.error("Error fetching doctors:", error);
@@ -40,6 +38,9 @@ const MakeAppointment = () => {
     };
     fetchDoctors();
   }, []);
+
+  // ✅ Local_User check karo
+  console.log('Local_User:', Local_User);
 
   return (
     <div>
@@ -63,7 +64,7 @@ const MakeAppointment = () => {
               <div className="appointment-form">
                 <Formik
                   initialValues={{
-                    user: Local_User?._id,
+                    user: Local_User?._id || "",
                     doctor: "",
                     firstName: "",
                     lastName: "",
@@ -75,29 +76,41 @@ const MakeAppointment = () => {
                   }}
                   validationSchema={validationSchema}
                   onSubmit={async (values, { setSubmitting, resetForm }) => {
-    console.log("Form data submitted:", values);
-    setLoading(true);
-    try {
-      const response = await dispatch(createAppointmentSlice(values));
-      console.log("Full response:", response);  // ← pehle dekho kya aata hai
+                    // ✅ User ID manually set karo
+                    const finalValues = {
+                      ...values,
+                      user: Local_User?._id,
+                    };
 
-      // ✅ Fix - rejected check karo
-      if (response.type === 'appointment/createAppointmentApi/fulfilled') {
-        resetForm();
-        toast.success("Appointment created successfully! 🎉");
-        window.location.reload();
-      } else {
-        // ❌ Failed
-        toast.error(response.payload?.message || "Failed to create appointment");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      toast.error("An error occurred!");
-    } finally {
-      setSubmitting(false);
-      setLoading(false);
-    }
-}}
+                    console.log("Form data submitted:", finalValues);
+
+                    // ✅ User check
+                    if (!finalValues.user) {
+                      toast.error("Please login first!");
+                      setSubmitting(false);
+                      return;
+                    }
+
+                    setLoading(true);
+                    try {
+                      const response = await dispatch(createAppointmentSlice(finalValues));
+                      console.log("Full response:", response);
+
+                      if (response.type === 'appointment/createAppointmentApi/fulfilled') {
+                        resetForm();
+                        toast.success("Appointment created successfully! 🎉");
+                        window.location.reload();
+                      } else {
+                        toast.error(response.payload?.message || "Failed to create appointment");
+                      }
+                    } catch (error) {
+                      console.error("Error:", error);
+                      toast.error("An error occurred!");
+                    } finally {
+                      setSubmitting(false);
+                      setLoading(false);
+                    }
+                  }}
                 >
                   {({ errors, touched, handleSubmit, setFieldValue }) => (
                     <Form onSubmit={handleSubmit}>
@@ -105,77 +118,43 @@ const MakeAppointment = () => {
                         <div className="col-md-6">
                           <Field
                             type="text"
-                            className={`form-control input-lg ${
-                              errors.firstName && touched.firstName
-                                ? "is-invalid"
-                                : ""
-                            }`}
+                            className={`form-control input-lg ${errors.firstName && touched.firstName ? "is-invalid" : ""}`}
                             placeholder="First Name"
                             name="firstName"
                           />
-                          <ErrorMessage
-                            name="firstName"
-                            component="div"
-                            className="invalid-feedback"
-                          />
+                          <ErrorMessage name="firstName" component="div" className="invalid-feedback" />
                         </div>
                         <div className="col-md-6">
                           <Field
                             type="text"
-                            className={`form-control input-lg ${
-                              errors.lastName && touched.lastName
-                                ? "is-invalid"
-                                : ""
-                            }`}
+                            className={`form-control input-lg ${errors.lastName && touched.lastName ? "is-invalid" : ""}`}
                             placeholder="Last Name"
                             name="lastName"
                           />
-                          <ErrorMessage
-                            name="lastName"
-                            component="div"
-                            className="invalid-feedback"
-                          />
+                          <ErrorMessage name="lastName" component="div" className="invalid-feedback" />
                         </div>
                         <div className="col-md-6">
                           <Field
                             type="email"
-                            className={`form-control input-lg ${
-                              errors.email && touched.email ? "is-invalid" : ""
-                            }`}
+                            className={`form-control input-lg ${errors.email && touched.email ? "is-invalid" : ""}`}
                             placeholder="Address Email"
                             name="email"
                           />
-                          <ErrorMessage
-                            name="email"
-                            component="div"
-                            className="invalid-feedback"
-                          />
+                          <ErrorMessage name="email" component="div" className="invalid-feedback" />
                         </div>
                         <div className="col-md-6">
                           <Field
                             type="text"
-                            className={`form-control input-lg ${
-                              errors.phoneNumber && touched.phoneNumber
-                                ? "is-invalid"
-                                : ""
-                            }`}
+                            className={`form-control input-lg ${errors.phoneNumber && touched.phoneNumber ? "is-invalid" : ""}`}
                             placeholder="Phone Number"
                             name="phoneNumber"
                           />
-                          <ErrorMessage
-                            name="phoneNumber"
-                            component="div"
-                            className="invalid-feedback"
-                          />
+                          <ErrorMessage name="phoneNumber" component="div" className="invalid-feedback" />
                         </div>
                         <div className="col-md-6">
                           <Field
                             as="select"
-                            className={`form-control input-lg ${
-                              errors.gender && touched.gender
-                                ? "is-invalid"
-                                : ""
-                            }`}
+                            className={`form-control input-lg ${errors.gender && touched.gender ? "is-invalid" : ""}`}
                             name="gender"
                           >
                             <option value="">Select Your Gender</option>
@@ -183,28 +162,15 @@ const MakeAppointment = () => {
                             <option value="Female">Female</option>
                             <option value="Child">Child</option>
                           </Field>
-                          <ErrorMessage
-                            name="gender"
-                            component="div"
-                            className="invalid-feedback"
-                          />
+                          <ErrorMessage name="gender" component="div" className="invalid-feedback" />
                         </div>
                         <div className="col-md-6">
                           <Field
                             type="date"
-                            className={`form-control input-lg ${
-                              errors.appointmentDate && touched.appointmentDate
-                                ? "is-invalid"
-                                : ""
-                            }`}
-                            placeholder="Appointment Date"
+                            className={`form-control input-lg ${errors.appointmentDate && touched.appointmentDate ? "is-invalid" : ""}`}
                             name="appointmentDate"
                           />
-                          <ErrorMessage
-                            name="appointmentDate"
-                            component="div"
-                            className="invalid-feedback"
-                          />
+                          <ErrorMessage name="appointmentDate" component="div" className="invalid-feedback" />
                         </div>
                         <div className="col-md-12">
                           <label htmlFor="doctor">Doctor</label>
@@ -212,14 +178,8 @@ const MakeAppointment = () => {
                             as="select"
                             id="doctor"
                             name="doctor"
-                            className={`form-control input-lg ${
-                              errors.doctor && touched.doctor
-                                ? "is-invalid"
-                                : ""
-                            }`}
-                            onChange={(e) =>
-                              setFieldValue("doctor", e.target.value)
-                            }
+                            className={`form-control input-lg ${errors.doctor && touched.doctor ? "is-invalid" : ""}`}
+                            onChange={(e) => setFieldValue("doctor", e.target.value)}
                           >
                             <option value="">Select Doctor</option>
                             {doctors.map((doctor) => (
@@ -228,48 +188,28 @@ const MakeAppointment = () => {
                               </option>
                             ))}
                           </Field>
-                          <ErrorMessage
-                            name="doctor"
-                            component="div"
-                            className="invalid-feedback"
-                          />
+                          <ErrorMessage name="doctor" component="div" className="invalid-feedback" />
                         </div>
                         <div className="col-xs-12">
                           <Field
                             as="textarea"
-                            className={`form-control input-lg ${
-                              errors.message && touched.message
-                                ? "is-invalid"
-                                : ""
-                            }`}
+                            className={`form-control input-lg ${errors.message && touched.message ? "is-invalid" : ""}`}
                             rows="7"
                             placeholder="Message"
                             name="message"
                           />
-                          <ErrorMessage
-                            name="message"
-                            component="div"
-                            className="invalid-feedback"
-                          />
+                          <ErrorMessage name="message" component="div" className="invalid-feedback" />
                         </div>
                         <div className="col-xs-12">
-                          {
-                            loading ? (
-                              <button
-                              className="btn btn-lg btn-block"
-                              disabled
-                            >
+                          {loading ? (
+                            <button className="btn btn-lg btn-block" disabled>
                               Creating...
                             </button>
-                            ):(
-                              <button
-                              className="btn btn-lg btn-block"
-                              type="submit"
-                            >
+                          ) : (
+                            <button className="btn btn-lg btn-block" type="submit">
                               Create
                             </button>
-                            )
-                          }
+                          )}
                         </div>
                       </div>
                     </Form>
